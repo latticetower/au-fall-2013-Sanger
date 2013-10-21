@@ -11,9 +11,9 @@ struct DirectoryEntry
 	int tagNumber;
 	short elementType;
 	short elementSize;
-	int numOfElements;
+	int numOfElements;//when in header section, we must read this - at byte 18
 	int dataSize;
-	int dataOffset;
+	int dataOffset;//when in header section, we must read this - at byte 26
 	int dataHandle;
 };
 
@@ -30,26 +30,13 @@ void print(std::ostream& outputStream, DirectoryEntry& dirEntry)
     << "dataHandle:    " << dirEntry.dataHandle    << std::endl;
 }
 
-void readHeader(std::istream& inputStream, DirectoryEntry *mydir)
-{
-  inputStream.read((char*) &mydir->tagName, 4);
-	inputStream.read((char*) &mydir->tagNumber, 4);
-	inputStream.read((char*) &mydir->elementType, 2);
-  inputStream.read((char*) &mydir->elementSize, 2);
-	inputStream.read((char*) &mydir->numOfElements, 4);//must read this - at byte 18
-	inputStream.read((char*) &mydir->dataSize, 4);
-	inputStream.read((char*) &mydir->dataOffset, 4);//must read this - at byte 26
-  inputStream.read((char*) &mydir->dataHandle, 4);
-}
-
-
 int main()
 {
 	DirectoryEntry header;
 	std::ifstream file("input.ab1", std::ios_base::binary);	
-	unsigned char temp = '\0';
+  // TODO: should change file and location to support reading file as a cmd parameter
 	char file_format[5];
-	char file_version[2];
+	short file_version;
   
   file.read(file_format, 4);
   file_format[4] = '\0';
@@ -59,11 +46,13 @@ int main()
 		std::cout << "File has wrong format!";
 		return 1;
 	}
-  file.read(file_version, 2);
+  file.read((char*) &file_version, 2);// we needn't read this, actually
+  file.seekg(6, std::ios::beg);//DirectoryEntry in header section begins at this offset
+  file.read((char*) &header, sizeof(header));
 
-  readHeader(file, &header);
+  std::cout << "Got data offset: " << header.dataOffset << std::endl;
   //DirectoryEntry is followed by 47 2-byte integers - according to specification, 
-  //they are reserved, we should ignore them:
+  //they are reserved, we should ignore them.
   file.seekg(47*2, std::ios_base::cur);
   file.seekg(header.dataOffset);
   
