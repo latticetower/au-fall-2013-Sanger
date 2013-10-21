@@ -6,6 +6,9 @@
 #include <fstream>
 #include <stdint.h>
 
+//TODO: there is still some error with struct reading, so must fix, I hope this article would help:
+//http://en.wikipedia.org/wiki/Data_structure_alignment
+// let's try to read manually again, hope that help
 #pragma pack(push)
 #pragma pack(1)
 struct DirectoryEntry
@@ -33,6 +36,19 @@ void print(std::ostream& outputStream, DirectoryEntry& dirEntry)
     << "dataOffset:    " << dirEntry.dataOffset    << std::endl 
     << "dataHandle:    " << dirEntry.dataHandle    << std::endl;
 }
+void readData(std::istream & inputStream, DirectoryEntry& dirEntry)
+{
+  inputStream.read((char*) &dirEntry.tagName, sizeof(uint32_t));
+  inputStream.read((char*) &dirEntry.tagNumber, sizeof(uint32_t));
+  inputStream.read((char*) &dirEntry.elementType, sizeof(uint16_t));
+  inputStream.read((char*) &dirEntry.elementSize, sizeof(uint16_t));
+  inputStream.seekg(18, std::ios::beg);
+  inputStream.read((char*) &dirEntry.numOfElements, sizeof(uint32_t));
+  inputStream.read((char*) &dirEntry.dataSize, sizeof(uint32_t));
+  inputStream.seekg(26, std::ios::beg);
+  inputStream.read((char*) &dirEntry.dataOffset, sizeof(uint32_t));
+  inputStream.read((char*) &dirEntry.dataHandle, sizeof(uint32_t));
+}
 
 int main()
 {
@@ -58,9 +74,11 @@ int main()
 		return 2;
 	}
   file.read((char*) &file_version, 2);// we needn't read this, actually
+  std::cout << file_version << std::endl;
   file.seekg(6, std::ios::beg);//DirectoryEntry in header section begins at this offset
-  file.read((char*) &header, sizeof(header));
-  
+  readData(file, header);//FIX: this way of reading doesn't help either.
+  //TODO: read specification, look at file_version?
+
   print(std::cout, header);
 
   std::cout << "Got data offset: " << header.dataOffset << std::endl;
