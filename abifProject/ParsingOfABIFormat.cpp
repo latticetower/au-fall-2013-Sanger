@@ -4,18 +4,22 @@
 //
 #include <iostream>
 #include <fstream>
+#include <stdint.h>
 
+#pragma pack(push)
+#pragma pack(1)
 struct DirectoryEntry
 {
-	int tagName;
-	int tagNumber;
-	short elementType;
-	short elementSize;
-	int numOfElements;//when in header section, we must read this - at byte 18
-	int dataSize;
-	int dataOffset;//when in header section, we must read this - at byte 26
-	int dataHandle;
+	uint32_t tagName;
+	uint32_t tagNumber;
+	uint16_t elementType;
+	uint16_t elementSize;
+	uint32_t numOfElements;//when in header section, we must read this - at byte 18
+	uint32_t dataSize;
+	uint32_t dataOffset;//when in header section, we must read this - at byte 26
+	uint32_t dataHandle;
 };
+#pragma pack(pop)
 
 void print(std::ostream& outputStream, DirectoryEntry& dirEntry)
 {
@@ -34,6 +38,12 @@ int main()
 {
 	DirectoryEntry header;
 	std::ifstream file("input.ab1", std::ios_base::binary);	
+  if (!file.is_open())
+  {
+    std::cout << "File couldn't be opened, for the reasons unknown...";
+    return 1;
+  }
+
   // TODO: should change file and location to support reading file as a cmd parameter
 	char file_format[5];
 	short file_version;
@@ -41,14 +51,17 @@ int main()
   file.read(file_format, 4);
   file_format[4] = '\0';
 
-	if (strcmp(file_format, "ABIF") == 0)
+	if (strcmp(file_format, "ABIF") != 0)
 	{
-		std::cout << "File has wrong format!";
-		return 1;
+		std::cout << "File has wrong format! " << file_format << std::endl;
+    system("pause");
+		return 2;
 	}
   file.read((char*) &file_version, 2);// we needn't read this, actually
   file.seekg(6, std::ios::beg);//DirectoryEntry in header section begins at this offset
   file.read((char*) &header, sizeof(header));
+  
+  print(std::cout, header);
 
   std::cout << "Got data offset: " << header.dataOffset << std::endl;
   //DirectoryEntry is followed by 47 2-byte integers - according to specification, 
@@ -58,7 +71,17 @@ int main()
   file.seekg(header.dataOffset);
   //read data
   file.read((char*) dirData, header.numOfElements * sizeof(DirectoryEntry));
-
+  if (file)
+    std::cout << "all DirectoryEntries read successfully";
+  else 
+  {
+    std::cout << "error: only " << file.gcount() << " could be read";
+    delete[] dirData;//clear memory anyway
+    file.close();//close file handle
+    return 3;//and exit
+  }
+  //TODO: here we can print something
+  file.close();
   delete[] dirData;//clear memory before exit	
 	system("pause");
 	return 0;
