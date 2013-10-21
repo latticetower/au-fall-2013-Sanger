@@ -1,6 +1,6 @@
 // ParsingOfABIFormat.cpp: определяет точку входа для консольного приложения.
-//basic specification url:
-//http://projects.nfstc.org/workshops/resources/articles/ABIF_File_Format.pdf
+// basic specification url:
+// http://projects.nfstc.org/workshops/resources/articles/ABIF_File_Format.pdf
 //
 #include <iostream>
 #include <fstream>
@@ -53,10 +53,13 @@ int main()
   std::cout << "Got data offset: " << header.dataOffset << std::endl;
   //DirectoryEntry is followed by 47 2-byte integers - according to specification, 
   //they are reserved, we should ignore them.
-  file.seekg(47*2, std::ios_base::cur);
+  //then go to the header.dataOffset position:
+  DirectoryEntry* dirData = new DirectoryEntry[header.numOfElements];
   file.seekg(header.dataOffset);
-  
-		
+  //read data
+  file.read((char*) dirData, header.numOfElements * sizeof(DirectoryEntry));
+
+  delete[] dirData;//clear memory before exit	
 	system("pause");
 	return 0;
 }
