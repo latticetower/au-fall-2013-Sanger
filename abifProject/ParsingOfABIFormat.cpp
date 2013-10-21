@@ -5,22 +5,32 @@
 #include <iostream>
 #include <fstream>
 #include <stdint.h>
+#include <algorithm>
 
 //TODO: there is still some error with struct reading, so must fix, I hope this article would help:
 //http://en.wikipedia.org/wiki/Data_structure_alignment
 // let's try to read manually again, hope that help
+
+
+template <class T>
+void endian_swap(T *object)
+{
+  unsigned char* memoryPointer = reinterpret_cast<unsigned char*>(object);
+  std::reverse(memoryPointer, memoryPointer + sizeof(T));
+}
+
 #pragma pack(push)
 #pragma pack(1)
 struct DirectoryEntry
 {
-	uint32_t tagName;
-	uint32_t tagNumber;
-	uint16_t elementType;
-	uint16_t elementSize;
-	uint32_t numOfElements;//when in header section, we must read this - at byte 18
-	uint32_t dataSize;
-	uint32_t dataOffset;//when in header section, we must read this - at byte 26
-	uint32_t dataHandle;
+	int32_t tagName;
+	int32_t tagNumber;
+	int16_t elementType;
+	int16_t elementSize;
+	int32_t numOfElements;//when in header section, we must read this - at byte 18
+	int32_t dataSize;
+	int32_t dataOffset;//when in header section, we must read this - at byte 26
+	int32_t dataHandle;
 };
 #pragma pack(pop)
 
@@ -36,18 +46,24 @@ void print(std::ostream& outputStream, DirectoryEntry& dirEntry)
     << "dataOffset:    " << dirEntry.dataOffset    << std::endl 
     << "dataHandle:    " << dirEntry.dataHandle    << std::endl;
 }
-void readData(std::istream & inputStream, DirectoryEntry& dirEntry)
+void readData(std::istream & inputStream, DirectoryEntry* dirEntry)
 {
-  inputStream.read((char*) &dirEntry.tagName, sizeof(uint32_t));
-  inputStream.read((char*) &dirEntry.tagNumber, sizeof(uint32_t));
-  inputStream.read((char*) &dirEntry.elementType, sizeof(uint16_t));
-  inputStream.read((char*) &dirEntry.elementSize, sizeof(uint16_t));
-  inputStream.seekg(18, std::ios::beg);
-  inputStream.read((char*) &dirEntry.numOfElements, sizeof(uint32_t));
-  inputStream.read((char*) &dirEntry.dataSize, sizeof(uint32_t));
-  inputStream.seekg(26, std::ios::beg);
-  inputStream.read((char*) &dirEntry.dataOffset, sizeof(uint32_t));
-  inputStream.read((char*) &dirEntry.dataHandle, sizeof(uint32_t));
+  inputStream.read(reinterpret_cast<char*>(&dirEntry->tagName), 4);
+  inputStream.read(reinterpret_cast<char*>(&dirEntry->tagNumber), 4);
+  inputStream.read(reinterpret_cast<char*>(&dirEntry->elementType), 2);
+  inputStream.read(reinterpret_cast<char*>(&dirEntry->elementSize), 2);
+  inputStream.read(reinterpret_cast<char*>(&dirEntry->numOfElements), 4);
+  inputStream.read(reinterpret_cast<char*>(&dirEntry->dataSize), 4);
+  inputStream.read(reinterpret_cast<char*>(&dirEntry->dataOffset), 4);
+  inputStream.read(reinterpret_cast<char*>(&dirEntry->dataHandle), 4);
+  endian_swap(&dirEntry->tagName);
+  endian_swap(&dirEntry->tagNumber);
+  endian_swap(&dirEntry->elementType);
+  endian_swap(&dirEntry->elementSize);
+  endian_swap(&dirEntry->numOfElements);
+  endian_swap(&dirEntry->dataSize);
+  endian_swap(&dirEntry->dataOffset);
+  endian_swap(&dirEntry->dataHandle);
 }
 
 int main()
@@ -73,10 +89,10 @@ int main()
     system("pause");
 		return 2;
 	}
-  file.read((char*) &file_version, 2);// we needn't read this, actually
+  file.read(reinterpret_cast<char*>(&file_version), 2);// we needn't read this, actually
   std::cout << file_version << std::endl;
   file.seekg(6, std::ios::beg);//DirectoryEntry in header section begins at this offset
-  readData(file, header);//FIX: this way of reading doesn't help either.
+  readData(file, &header);//FIX: this way of reading doesn't help either.
   //TODO: read specification, look at file_version?
 
   print(std::cout, header);
@@ -86,9 +102,14 @@ int main()
   //they are reserved, we should ignore them.
   //then go to the header.dataOffset position:
   DirectoryEntry* dirData = new DirectoryEntry[header.numOfElements];
+  //TODO: should read dirData manually
   file.seekg(header.dataOffset);
   //read data
-  file.read((char*) dirData, header.numOfElements * sizeof(DirectoryEntry));
+  //file.read(reinterpret_cast<char*>(dirData), header.numOfElements * sizeof(DirectoryEntry));
+  for (int i = 0; i < header.numOfElements; i++)
+  {
+    readData(file, &dirData[i]);
+  }
   if (file)
     std::cout << "all DirectoryEntries read successfully";
   else 
