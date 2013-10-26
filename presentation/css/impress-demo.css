@@ -33,6 +33,9 @@ time, mark, audio, video {
     vertical-align: baseline;
 }
 
+q{
+color:#658B6F;
+}
 /* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure, 
 footer, header, hgroup, menu, nav, section {
@@ -64,12 +67,12 @@ body {
     
     min-height: 740px;
 
-    background: rgb(215, 215, 215);
-    background: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 500, from(rgb(240, 240, 240)), to(rgb(190, 190, 190)));
-    background: -webkit-radial-gradient(rgb(240, 240, 240), rgb(190, 190, 190));
-    background:    -moz-radial-gradient(rgb(240, 240, 240), rgb(190, 190, 190));
-    background:      -o-radial-gradient(rgb(240, 240, 240), rgb(190, 190, 190));
-    background:         radial-gradient(rgb(240, 240, 240), rgb(190, 190, 190));
+    background: #rgb(153, 174, 173);99AEAD
+    background: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 500, from(rgb(153, 174, 173)), to(rgb(190, 190, 190)));
+    background: -webkit-radial-gradient(rgb(153, 174, 173), rgb(190, 190, 190));
+    background:    -moz-radial-gradient(rgb(153, 174, 173), rgb(190, 190, 190));
+    background:      -o-radial-gradient(rgb(153, 174, 173), rgb(190, 190, 190));
+    background:         radial-gradient(rgb(153, 174, 173), rgb(190, 190, 190));
 
     -webkit-font-smoothing: antialiased;
 }
@@ -441,7 +444,7 @@ body     { pointer-events: none; }
 
     font-family: 'Open Sans', Arial, sans-serif;
 
-    color: rgb(102, 102, 102);
+    color: #2F575D;
     text-shadow: 0 2px 2px rgba(0, 0, 0, .1);
 
     font-size: 30px;
