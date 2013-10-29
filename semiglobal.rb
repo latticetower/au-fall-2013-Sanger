@@ -64,21 +64,9 @@ end
 def get_backtrace_path(distance_matrix, str1, str2)
   max1 = distance_matrix[str1.length].max
   max2 = distance_matrix.max_by{ |x| x[str2.length] }[str2.length]
-  puts max1 
-  puts max2
-  if str1.length < str2.length
-    i = str1.length
-    j = distance_matrix[i].index{|x| x == distance_matrix[str1.length].max}
-  else
-    j = str2.length
-    i = distance_matrix.index do |x| 
-      x[j] == distance_matrix.max_by{ |x| x[str2.length] }[str2.length]
-      
-    end
-  end
+  i = distance_matrix.index{|x| x[str2.length] == [max1, max2].max} || str1.length
+  j = distance_matrix[str1.length].index{|x| x == [max1, max2].max} || str2.length
 
-#i,j = str1.length, str2.length
-#  puts i
   result_array = []
   while i > 0  || j > 0
     current_score = distance_matrix[i][j] # last optimal score for current cell
