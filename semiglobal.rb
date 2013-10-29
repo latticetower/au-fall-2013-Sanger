@@ -21,8 +21,8 @@ SUBSTITUTION = -1
 
 # returns gap for chars a and b, based on constant values
 def get_gap(a, b)
-  MATCHING_SYMBOLS if (a==b)
-  LINEAR_GAP if (a == '-' || b == '-')
+  return MATCHING_SYMBOLS if (a==b)
+  return LINEAR_GAP if (a == '-' || b == '-')
   SUBSTITUTION
 end
 
@@ -50,13 +50,14 @@ def build_matrix(str1, str2)
       ].max
     end
   end
+  print_matrix(distance_matrix)
   distance_matrix
 end
 
 # utility function: prints matrix to the console
 def print_matrix(distance_matrix)
   distance_matrix.each do |line|
-    puts line.join(' ')
+    puts line.map{|x| '%3s' % x}.join(' ')
   end
 end
 
@@ -216,8 +217,8 @@ end
 distance_semiglobal(lines_array[0], lines_array[1]) do |result, path|
   puts "distance between lines is: #{result}"
   @outfile.puts result
-  # puts path.map{|x| x[0]}.join('') # shows first line in console
-  # puts path.map{|x| x[1]}.join('') # shows second line in console
+  puts path.map{|x| x[0]}.join('') # shows first line in console
+  puts path.map{|x| x[1]}.join('') # shows second line in console
 end
 
 #puts "Let's look at all optimal paths with minimal cost:"
