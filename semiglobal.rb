@@ -21,7 +21,7 @@ SUBSTITUTION = -1
 
 # returns gap for chars a and b, based on constant values
 def get_gap(a, b)
-  return MATCHING_SYMBOLS if (a==b)
+  return MATCHING_SYMBOLS if (a == b)
   return LINEAR_GAP if (a == '-' || b == '-')
   SUBSTITUTION
 end
@@ -43,11 +43,10 @@ def build_matrix(str1, str2)
   #then we begin to fill the entire matrix:
   n.times do |i|
     m.times do |j|
-      distance_matrix[i + 1][j + 1] = [
-        distance_matrix[i + 1][j] + get_gap(str1[i], '-'),
-        distance_matrix[i][j + 1] + get_gap('-', str2[j]),
-        distance_matrix[i][j] + get_gap(str1[i], str2[j])
-      ].max
+      values = [ distance_matrix[i][j] + get_gap(str1[i], str2[j]) ]
+      values << distance_matrix[i + 1][j] + (j < str2.size ? get_gap(str1[i], '-') : 0) 
+      values << distance_matrix[i][j + 1] + (i < str1.size ? get_gap('-', str2[j]) : 0)
+      distance_matrix[i + 1][j + 1] = values.max
     end
   end
   print_matrix(distance_matrix)
@@ -63,7 +62,23 @@ end
 
 # gets backtrace path for matrix (returns some optimal alignment)
 def get_backtrace_path(distance_matrix, str1, str2)
-  i, j = str1.length, str2.length
+  max1 = distance_matrix[str1.length].max
+  max2 = distance_matrix.max_by{ |x| x[str2.length] }[str2.length]
+  puts max1 
+  puts max2
+  if str1.length < str2.length
+    i = str1.length
+    j = distance_matrix[i].index{|x| x == distance_matrix[str1.length].max}
+  else
+    j = str2.length
+    i = distance_matrix.index do |x| 
+      x[j] == distance_matrix.max_by{ |x| x[str2.length] }[str2.length]
+      
+    end
+  end
+
+#i,j = str1.length, str2.length
+#  puts i
   result_array = []
   while i > 0  || j > 0
     current_score = distance_matrix[i][j] # last optimal score for current cell
@@ -147,7 +162,8 @@ def distance_semiglobal(str1, str2)
   n = str2.length
   distance_matrix = build_matrix(str1, str2) # to improve readability
   
-  result = distance_matrix[str1.length][str2.length]
+  result = [distance_matrix[str1.length].max, distance_matrix.max_by{ |x| x[str2.length] }[str2.length]].max
+  #distance_matrix[str1.length][str2.length]
   yield(result, get_backtrace_path(distance_matrix, str1, str2)) if block_given?
   # to Pavel: check 'if block_given?' is the correct way, because if there is no block, 
   # there is no need to compute backtracing and distance method should only return the answer.
