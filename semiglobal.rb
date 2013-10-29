@@ -62,12 +62,22 @@ end
 
 # gets backtrace path for matrix (returns some optimal alignment)
 def get_backtrace_path(distance_matrix, str1, str2)
-  max1 = distance_matrix[str1.length].max
-  max2 = distance_matrix.max_by{ |x| x[str2.length] }[str2.length]
-  i = distance_matrix.index{|x| x[str2.length] == [max1, max2].max} || str1.length
-  j = distance_matrix[str1.length].index{|x| x == [max1, max2].max} || str2.length
+  max_by_row_and_column = [distance_matrix[str1.length].max, distance_matrix.max_by{ |x| x[str2.length] }[str2.length]].max
+  imax = distance_matrix.index{|x| x[str2.length] == max_by_row_and_column} || str1.length
+  jmax = distance_matrix[str1.length].index{|x| x == max_by_row_and_column} || str2.length
 
   result_array = []
+  # the end of string - we want to print it too:
+  i, j = str1.length, str2.length
+  while i > imax do
+    result_array.unshift([str1[i], '-'])
+    i -= 1
+  end
+  while j > jmax do
+    result_array.unshift(['-', str2[j]])
+    j -= 1
+  end
+  # aligned part && the beginning of string:
   while i > 0  || j > 0
     current_score = distance_matrix[i][j] # last optimal score for current cell
     
