@@ -21,8 +21,8 @@ SUBSTITUTION = -1
 
 # returns gap for chars a and b, based on constant values
 def get_gap(a, b)
-  MATCHING_SYMBOLS if (a==b)
-  LINEAR_GAP if (a == '-' || b == '-')
+  return MATCHING_SYMBOLS if (a == b)
+  return LINEAR_GAP if (a == '-' || b == '-')
   SUBSTITUTION
 end
 
@@ -43,27 +43,41 @@ def build_matrix(str1, str2)
   #then we begin to fill the entire matrix:
   n.times do |i|
     m.times do |j|
-      distance_matrix[i + 1][j + 1] = [
-        distance_matrix[i + 1][j] + get_gap(str1[i], '-'),
-        distance_matrix[i][j + 1] + get_gap('-', str2[j]),
-        distance_matrix[i][j] + get_gap(str1[i], str2[j])
-      ].max
+      values = [ distance_matrix[i][j] + get_gap(str1[i], str2[j]) ]
+      values << distance_matrix[i + 1][j] + (j < str2.size ? get_gap(str1[i], '-') : 0) 
+      values << distance_matrix[i][j + 1] + (i < str1.size ? get_gap('-', str2[j]) : 0)
+      distance_matrix[i + 1][j + 1] = values.max
     end
   end
+  print_matrix(distance_matrix)
   distance_matrix
 end
 
 # utility function: prints matrix to the console
 def print_matrix(distance_matrix)
   distance_matrix.each do |line|
-    puts line.join(' ')
+    puts line.map{|x| '%3s' % x}.join(' ')
   end
 end
 
 # gets backtrace path for matrix (returns some optimal alignment)
 def get_backtrace_path(distance_matrix, str1, str2)
-  i, j = str1.length, str2.length
+  max_by_row_and_column = [distance_matrix[str1.length].max, distance_matrix.max_by{ |x| x[str2.length] }[str2.length]].max
+  imax = distance_matrix.index{|x| x[str2.length] == max_by_row_and_column} || str1.length
+  jmax = distance_matrix[str1.length].index{|x| x == max_by_row_and_column} || str2.length
+
   result_array = []
+  # the end of string - we want to print it too:
+  i, j = str1.length, str2.length
+  while i > imax do
+    result_array.unshift([str1[i], '-'])
+    i -= 1
+  end
+  while j > jmax do
+    result_array.unshift(['-', str2[j]])
+    j -= 1
+  end
+  # aligned part && the beginning of string:
   while i > 0  || j > 0
     current_score = distance_matrix[i][j] # last optimal score for current cell
     
@@ -146,7 +160,8 @@ def distance_semiglobal(str1, str2)
   n = str2.length
   distance_matrix = build_matrix(str1, str2) # to improve readability
   
-  result = distance_matrix[str1.length][str2.length]
+  result = [distance_matrix[str1.length].max, distance_matrix.max_by{ |x| x[str2.length] }[str2.length]].max
+  #distance_matrix[str1.length][str2.length]
   yield(result, get_backtrace_path(distance_matrix, str1, str2)) if block_given?
   # to Pavel: check 'if block_given?' is the correct way, because if there is no block, 
   # there is no need to compute backtracing and distance method should only return the answer.
@@ -216,8 +231,8 @@ end
 distance_semiglobal(lines_array[0], lines_array[1]) do |result, path|
   puts "distance between lines is: #{result}"
   @outfile.puts result
-  # puts path.map{|x| x[0]}.join('') # shows first line in console
-  # puts path.map{|x| x[1]}.join('') # shows second line in console
+  puts path.map{|x| x[0]}.join('') # shows first line in console
+  puts path.map{|x| x[1]}.join('') # shows second line in console
 end
 
 #puts "Let's look at all optimal paths with minimal cost:"
