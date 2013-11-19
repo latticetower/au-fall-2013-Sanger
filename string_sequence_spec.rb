@@ -53,4 +53,11 @@ describe "StringSequence", "StringSequence primitive test" do
     end
     
   end
+  describe "static comparision method for stringsequence symbols" do
+    it "should return best result when possible" do
+      StringSequence.compare(['A', 'B'], ['A']).must_equal :match
+      StringSequence.compare(['A', 'B'], ['C']).must_equal :substitution
+      StringSequence.compare(['A', 'B'], ['C', '-']).must_equal :gap
+    end
+  end
 end

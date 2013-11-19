@@ -38,6 +38,12 @@ class StringSequence < Array
     end
   end
   
+  # method takes two stringsequence letters and returns if there is :gap, :match or :substitution
+  def self.compare(letter1, letter2)
+    return :match if (letter1 & letter2).size > 0
+    ((letter1 & letter2) + (['-'] & letter1) + (['-'] & letter2)).size > 0 ? :gap : :substitution
+  end
+  
   # TODO: should rename it or something. conflicts with inspect alias, doesn't redefine default behaviour
   def to_s
     self.map{|x| "[" + x.sort{|x, y| x.ord <=> y.ord}.join(', ') + "]"}.join(', ')
