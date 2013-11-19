@@ -20,17 +20,25 @@ class StringSequence < Array
     end
     self
   end
+  def strings
+    suffixes(0)
+  end
   
+  def suffixes(start_index)
+    Enumerator.new do |yielder|
+      if start_index == self.size - 1
+        yielder.yield ""
+      else
+        self[start_index].each do |letter|
+          suffixes(start_index + 1).each do |suffix_string|
+            yielder.yield letter + suffix_string
+          end
+        end
+      end
+    end
+  end
   def to_s()
     self.map{|x| "[" + x.sort{|x, y| x.ord <=> y.ord}.join(', ') + "]"}.join(', ')
   end
   
 end
-
-#
-# usage example
-#
-ss = StringSequence.new
-ss << "AAAAAAAA" << "BBBBBBBBBB"
-
-puts ss.to_s
