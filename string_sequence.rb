@@ -5,28 +5,28 @@ ruby 1.9.3 compatible
 =end
 class StringSequence < Array
   def initialize(*args)
-    super
+    super(args)
   end
-  def from_string(str)
-    str.chars.map{|chr| [chr] }
-  end
+  
   def << (str)
-    if self.size > str.size
-      self.zip(str.chars.map{|chr| [chr] } ).map{|x| x.inject(&:+)}
-    else
-      a = str.chars.map{|chr| [chr] }.zip(self).map{|x| x.compact.inject(&:+)}
-      self.clear
-      a.each {|x| self.push(x) }
-    end
+    a = if self.size > str.size 
+          self.zip(str.chars.map{|chr| [chr] } ).map{|x| x.compact.inject(&:+).uniq } 
+        else
+          str.chars.map{|chr| [chr] }.zip(self).map{|x| x.compact.inject(&:+).uniq }
+        end
+        
+    self.clear
+    a.each {|x| self.push(x) }
     self
   end
+  
   def strings
     suffixes(0)
   end
   
   def suffixes(start_index)
     Enumerator.new do |yielder|
-      if start_index == self.size - 1
+      if start_index == self.size
         yielder.yield ""
       else
         self[start_index].each do |letter|
@@ -37,7 +37,9 @@ class StringSequence < Array
       end
     end
   end
-  def to_s()
+  
+  # TODO: should rename it or something. conflicts with inspect alias, doesn't redefine default behaviour
+  def to_s
     self.map{|x| "[" + x.sort{|x, y| x.ord <=> y.ord}.join(', ') + "]"}.join(', ')
   end
   

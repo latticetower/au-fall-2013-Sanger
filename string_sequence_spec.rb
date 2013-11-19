@@ -12,19 +12,44 @@ describe "StringSequence", "StringSequence primitive test" do
       ss.to_s.must_equal "[A], [B], [C]"
     end
   end
+  
   describe "strings method call" do
+    it "should return Enumerator" do
+      StringSequence.new.strings.must_be_instance_of Enumerator
+    end
+    it "should return [''].to_enum when there is no strings" do
+      StringSequence.new.strings.to_a.size.must_equal 1
+      StringSequence.new.strings.to_a[0].must_equal ""
+    end
     it "should return all strings which can be achieved from given sequence" do
       ss = StringSequence.new
       ss << "AAB" << "AAC"
+      ss.to_s.must_equal "[A], [A], [B, C]"
       ss.strings.to_a.size.must_equal 2
+      ss << "ABC"
+      ss.strings.to_a.size.must_equal 4
     end
   end
+  
   describe "appending strings to original StringSequence with << operator" do
     it "should be correct when string sequence is empty" do
+      ss = StringSequence.new
+      ss << "AA-"
+      ss.to_s.must_equal "[A], [A], [-]"
     end
-    it "should be correct when new string size is greater than stringsequence size" do
+    it "should be correct when new string size is greater than StringSequence size" do
+      ss = StringSequence.new
+      ss << "AAA"
+      ss.to_s.must_equal "[A], [A], [A]"
+      ss << "BBBB"
+      ss.to_s.must_equal "[A, B], [A, B], [A, B], [B]"
     end
-    it "should be correct when SequenceString size is greater than new string size" do
+    it "should be correct when StringSequence size is greater than new string size" do
+      ss = StringSequence.new
+      ss << "AAA"
+      ss.to_s.must_equal "[A], [A], [A]"
+      ss << "BB"
+      ss.to_s.must_equal "[A, B], [A, B], [A]"
     end
     
   end
