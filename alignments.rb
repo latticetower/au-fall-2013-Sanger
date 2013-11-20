@@ -3,6 +3,8 @@
 # place where StringSequence finds his friends
 # (actually, i haven't decided yet, how to organize code, it seems that alignment algorithms should be placed outside of string_sequence class, but should it?)
 #
+require './string_sequence.rb'
+
 module Alignments
   # -----------
   # Constants
@@ -16,7 +18,7 @@ module Alignments
   # ----------
 
   # returns gap for chars a and b, based on constant values
-  def get_gap(a, b)
+  def self.get_gap(a, b)
     case StringSequence.compare(a, b)
       when :match
         MATCHING_SYMBOLS
@@ -27,7 +29,7 @@ module Alignments
     end
   end
   
-  def build_matrix(sequence1, sequence2)
+  def self.build_matrix(sequence1, sequence2)
     n = sequence1.size
     m = sequence2.size
     # matrix initialization:
@@ -43,8 +45,8 @@ module Alignments
     n.times do |i|
       m.times do |j|
         values = [ distance_matrix[i][j] + get_gap(sequence1[i], sequence2[j]) ]
-        values << distance_matrix[i + 1][j] + (j < sequence2.size ? get_gap(sequence1[i], '-') : 0) 
-        values << distance_matrix[i][j + 1] + (i < sequence1.size ? get_gap('-', sequence2[j]) : 0)
+        values << distance_matrix[i + 1][j] + (j < sequence2.size ? get_gap(sequence1[i], ['-']) : 0) 
+        values << distance_matrix[i][j + 1] + (i < sequence1.size ? get_gap(['-'], sequence2[j]) : 0)
         distance_matrix[i + 1][j + 1] = values.max
       end
     end
@@ -53,39 +55,52 @@ module Alignments
   end
   
   # utility function: prints matrix to the console
-  def print_matrix(distance_matrix)
+  def self.print_matrix(distance_matrix)
     distance_matrix.each{ |line| puts line.map{|x| '%3s' % x}.join(' ') }
   end
-
+  
+  def self.get_backtrace_path(distance_matrix, sequence1, sequence2)
+    max_value = [
+                distance_matrix[sequence1.length].max, 
+                distance_matrix.max_by{ |x| x[sequence2.length] }[sequence2.length]
+              ].max
+    max_value_coordinates = (0..sequence2.length).select{|j| distance_matrix[sequence1.length][j] == max_value}.map{|j| [sequence1.length, j]} + 
+        (0..sequence1.length).select{|i| distance_matrix[i][sequence2.length] == max_value }.map{|i| [i, sequence2.length]}.uniq
+    puts max_value_coordinates.map{|x| "[" + x.join(', ') + "]"}.join(', ')
+    max_value_coordinates.map {|start_coordinates|
+      get_backtrace_path_recursively(distance_matrix, sequence1, start_coordinates[0], sequence2, start_coordinates[1])
+    }.inject(&:+)
+  end
+  
   # gets array of optimal paths for matrix with recursion
-  def get_backtrace_path_recursively(distance_matrix, sequence1, i, sequence2, j)
+  def self.get_backtrace_path_recursively(distance_matrix, sequence1, i, sequence2, j)
     return [[]] if i == 0 && j == 0 
     if i == 0 # distance_matrix[0][j - 1] + LINEAR_GAP
-      result_array = get_backtrace_path_recursively(distance_matrix, str1, 0, str2, j - 1)
+      result_array = get_backtrace_path_recursively(distance_matrix, sequence1, 0, sequence2, j - 1)
       # puts "#{i}, #{j}: result_arr1: #{result_array.join(',')}"
-      return result_array.map!{ |array_el| array_el <<  ['-', str2[j - 1]] }
+      return result_array.map!{ |array_el| array_el <<  ['-', sequence2[j - 1]] }
     end
     if j == 0 # distance_matrix[i - 1][0] + LINEAR_GAP
-      result_array = get_backtrace_path_recursively(distance_matrix, str1, i - 1, str2, 0)
+      result_array = get_backtrace_path_recursively(distance_matrix, sequence1, i - 1, sequence2, 0)
       # puts "#{i}, #{j}: result_arr1: #{result_array.join(',')}"
-      return result_array.map!{ |array_el| array_el << [str1[i - 1], '-'] }
+      return result_array.map!{ |array_el| array_el << [sequence1[i - 1], '-'] }
     end
 
     current_score = distance_matrix[i][j] # last optimal score for current cell
    
     array1, array2, array3 = [], [], [] # temporary arrays for saving all possible optimal paths
     # here we add element at the beginning of the array according to score in cell [i, j] and neighbour cells
-    if current_score == distance_matrix[i - 1][j - 1] + get_gap(str1[i - 1], str2[j - 1])
-      array1 = get_backtrace_path_recursively(distance_matrix, str1, i - 1, str2, j - 1)
-      array1.map!{ |array_el| array_el << [str1[i - 1], str2[j - 1]] }
+    if current_score == distance_matrix[i - 1][j - 1] + get_gap(sequence1[i - 1], sequence2[j - 1])
+      array1 = get_backtrace_path_recursively(distance_matrix, sequence1, i - 1, sequence2, j - 1)
+      array1.map!{ |array_el| array_el << [sequence1[i - 1], sequence2[j - 1]] }
     end
-    if current_score == distance_matrix[i][j - 1] + get_gap('-', str2[j - 1])
-      array2 = get_backtrace_path_recursively(distance_matrix, str1, i, str2, j - 1)
-      array2.map!{ |array_el| array_el << ['-', str2[j - 1]] }
+    if current_score == distance_matrix[i][j - 1] + get_gap(['-'], sequence2[j - 1])
+      array2 = get_backtrace_path_recursively(distance_matrix, sequence1, i, sequence2, j - 1)
+      array2.map!{ |array_el| array_el << ['-', sequence2[j - 1]] }
     end
-    if current_score == distance_matrix[i - 1][j] + get_gap(str1[i - 1], '-')
-      array3 = get_backtrace_path_recursively(distance_matrix, str1, i - 1, str2, j)
-      array3.map!{ |array_el| array_el << [str1[i - 1], '-'] }
+    if current_score == distance_matrix[i - 1][j] + get_gap(sequence1[i - 1], ['-'])
+      array3 = get_backtrace_path_recursively(distance_matrix, sequence1, i - 1, sequence2, j)
+      array3.map!{ |array_el| array_el << [sequence1[i - 1], '-'] }
     end
     array1 + array2 + array3
   end
@@ -102,8 +117,7 @@ module Alignments
   # distance("CAPTION", "CAPTAIN") do |result, path|
   #     #do something with result & backtracing path inside block
   # end
-  def distance_semiglobal(sequence1, sequence2)
-    n = sequence2.length
+  def self.distance_semiglobal(sequence1, sequence2)
     distance_matrix = build_matrix(sequence1, sequence2) # to improve readability
     
     result = [distance_matrix[sequence1.length].max, distance_matrix.max_by{ |x| x[sequence2.length] }[sequence2.length]].max
