@@ -5,7 +5,7 @@ ruby 1.9.3 compatible
 =end
 class StringSequence < Array
   def initialize(*args)
-    super(args)
+    super(args).map!{|x| x.uniq}
   end
   
   def << (str)
