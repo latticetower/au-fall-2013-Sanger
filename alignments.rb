@@ -61,10 +61,17 @@ module Alignments
   # helper function. gets unaligned part of the string
   def self.get_tail(start_coordinates, sequence1, sequence2)
     result = []
-    [sequence1.length - start_coordinates[0], sequence2.length - start_coordinates[1]].max.times do |i|
-      result << [( start_coordinates[0] + i < sequence1.length ? ['-'] : sequence1[start_coordinates[1] + i]) +
-          (start_coordinates[1] + i < sequence2.length ? sequence2[start_coordinates[1] + i] : ['-'])].uniq
+    if start_coordinates[0] < sequence1.length
+      (sequence1.length - start_coordinates[0]).times do |i|
+        result << sequence1[start_coordinates[0] + i] + ['-']
+      end
     end
+    if start_coordinates[1] < sequence2.length
+      (sequence2.length - start_coordinates[1]).times do |i|
+        result << sequence2[start_coordinates[1] + j] + ['-']
+      end
+    end
+    result.map{|x| x.uniq }
   end
   
   def self.get_backtrace_path(distance_matrix, sequence1, sequence2)
