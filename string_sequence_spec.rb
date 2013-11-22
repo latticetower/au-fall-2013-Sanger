@@ -60,4 +60,14 @@ describe "StringSequence", "StringSequence primitive test" do
       StringSequence.compare(['A', 'B'], ['C', '-']).must_equal :gap
     end
   end
+  describe "static combination method for StringSequences" do
+    it "should return StringSequence" do
+      StringSequence.combine([['A', 'B']], [['A']]).must_be_instance_of StringSequence
+    end
+    it "should return common letter in resulting Sequence" do
+      StringSequence.combine([['A', 'B']], [['A']]).to_s.must_equal "[A]"
+      StringSequence.combine([['A']], [['B']]).to_s.must_equal "[A]"
+      StringSequence.combine([['A', '-']], [['A']]).to_s.must_equal "[A]"
+    end
+  end
 end
