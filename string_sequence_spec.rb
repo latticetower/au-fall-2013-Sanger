@@ -66,7 +66,7 @@ describe "StringSequence", "StringSequence primitive test" do
     end
     it "should return common letter in resulting Sequence" do
       StringSequence.combine([['A', 'B']], [['A']]).to_s.must_equal "[A]"
-      StringSequence.combine([['A']], [['B']]).to_s.must_equal "[A]"
+      StringSequence.combine([['A']], [['B']]).to_s.must_equal "[]"
       StringSequence.combine([['A', '-']], [['A']]).to_s.must_equal "[A]"
     end
   end

@@ -44,6 +44,14 @@ class StringSequence < Array
     ((letter1 & letter2) + (['-'] & letter1) + (['-'] & letter2)).size > 0 ? :gap : :substitution
   end
   
+  def self.combine(array1, array2)
+    StringSequence.new.push(if array1.size > array2.size
+      array1.zip(array2).map{|x| x.inject(&:&).uniq }
+    else
+      array2.zip(array1).map{|x| x.inject(&:&).uniq }
+    end)
+  end
+  
   # TODO: should rename it or something. conflicts with inspect alias, doesn't redefine default behaviour
   def to_s
     self.map{|x| "[" + x.sort{|x, y| x.ord <=> y.ord}.join(', ') + "]"}.join(', ')
