@@ -39,77 +39,77 @@ struct DirectoryEntry
 
 struct DNASequence
 {
-		std::string sequence;
-		std::vector<short> PeakPositions;
-		std::vector<short> CYs;
-		std::vector<short> GYs;
-		std::vector<short> AYs;
-		std::vector<short> TYs;
-		std::string machineName;
-		std::string sampleName;
-		std::string sampleComment;
-		std::string phredQuality;
-		DNASequence(std::map<std::string, std::vector<DirectoryEntry*>> dirMap, std::ifstream *file)
-		{
-			sequence = GetInformationFromEntry<std::string>("PBAS", 2, dirMap, file); 
-			sampleComment = GetInformationFromEntry<std::string>("CMNT", 1, dirMap, file); 
-			GYs = GetInformationFromEntry<std::vector<short>>("DATA", 1, dirMap, file);
-			AYs = GetInformationFromEntry<std::vector<short>>("DATA", 2, dirMap, file);
-			TYs = GetInformationFromEntry<std::vector<short>>("DATA", 3, dirMap, file);
-			CYs = GetInformationFromEntry<std::vector<short>>("DATA", 4, dirMap, file);
-			PeakPositions = GetInformationFromEntry<std::vector<short>>("PLOC", 1, dirMap, file);
-			phredQuality = GetInformationFromEntry<std::string>("PCON", 1, dirMap, file); 
-			machineName = GetInformationFromEntry<std::string>("MCHN", 1, dirMap, file);
-			sampleName = GetInformationFromEntry<std::string>("MCHN", 1, dirMap, file);
-		}
+    std::string sequence;
+    std::vector<short> PeakPositions;
+    std::vector<short> CYs;
+    std::vector<short> GYs;
+    std::vector<short> AYs;
+    std::vector<short> TYs;
+    std::string machineName;
+    std::string sampleName;
+    std::string sampleComment;
+    std::string phredQuality;
+    DNASequence(std::map<std::string, std::vector<DirectoryEntry*>> dirMap, std::ifstream *file)
+    {
+      sequence = GetInformationFromEntry<std::string>("PBAS", 2, dirMap, file); 
+      sampleComment = GetInformationFromEntry<std::string>("CMNT", 1, dirMap, file); 
+      GYs = GetInformationFromEntry<std::vector<short>>("DATA", 1, dirMap, file);
+      AYs = GetInformationFromEntry<std::vector<short>>("DATA", 2, dirMap, file);
+      TYs = GetInformationFromEntry<std::vector<short>>("DATA", 3, dirMap, file);
+      CYs = GetInformationFromEntry<std::vector<short>>("DATA", 4, dirMap, file);
+      PeakPositions = GetInformationFromEntry<std::vector<short>>("PLOC", 1, dirMap, file);
+      phredQuality = GetInformationFromEntry<std::string>("PCON", 1, dirMap, file); 
+      machineName = GetInformationFromEntry<std::string>("MCHN", 1, dirMap, file);
+      sampleName = GetInformationFromEntry<std::string>("MCHN", 1, dirMap, file);
+    }
 
-		template<class T>
-		T GetInformationFromEntry(std::string tag, unsigned int number, std::map<std::string, std::vector<DirectoryEntry*>> dirMap, std::ifstream *file)
-		{
-			std::vector<DirectoryEntry*>::iterator it = begin(dirMap[tag]);
-			for(it = begin(dirMap[tag]); it != end(dirMap[tag]); ++it)
-			{
-				if((*it)->tagNumber == number)
-					break;
-			}
-			T result;
-			if(it != end(dirMap[tag]))
-			{
-				file->seekg((*it)->dataOffset);
-				char tag[2000];
-				file->read(reinterpret_cast<char*>(tag), (*it)->elementSize*(*it)->numOfElements);
-				result = T(tag, (*it)->elementSize*(*it)->numOfElements);
-				return result;
-			}
-			std::cout << "Can't return " << tag << " with parametr " << number << std::endl;
-			return result;
-		}
+    template<class T>
+    T GetInformationFromEntry(std::string tag, unsigned int number, std::map<std::string, std::vector<DirectoryEntry*>> dirMap, std::ifstream *file)
+    {
+      std::vector<DirectoryEntry*>::iterator it = begin(dirMap[tag]);
+      for(it = begin(dirMap[tag]); it != end(dirMap[tag]); ++it)
+      {
+        if((*it)->tagNumber == number)
+          break;
+      }
+      T result;
+      if(it != end(dirMap[tag]))
+      {
+        file->seekg((*it)->dataOffset);
+        char tag[2000];
+        file->read(reinterpret_cast<char*>(tag), (*it)->elementSize*(*it)->numOfElements);
+        result = T(tag, (*it)->elementSize*(*it)->numOfElements);
+        return result;
+      }
+      std::cout << "Can't return " << tag << " with parametr " << number << std::endl;
+      return result;
+    }
 
-		template<>
-		std::vector<short> GetInformationFromEntry(std::string tag, unsigned int number, std::map<std::string, std::vector<DirectoryEntry*>> dirMap, std::ifstream *file)
-		{
-			std::vector<DirectoryEntry*>::iterator it = begin(dirMap[tag]);
-			for(it = begin(dirMap[tag]); it != end(dirMap[tag]); ++it)
-			{
-				if((*it)->tagNumber == number)
-					break;
-			}
-			std::vector<short> result;
-			if(it != end(dirMap[tag]))
-			{
-				file->seekg((*it)->dataOffset);
-				short tempShort;
-				for(int j = 0; j < (*it)->numOfElements; ++j)
+    template<>
+    std::vector<short> GetInformationFromEntry(std::string tag, unsigned int number, std::map<std::string, std::vector<DirectoryEntry*>> dirMap, std::ifstream *file)
+    {
+      std::vector<DirectoryEntry*>::iterator it = begin(dirMap[tag]);
+      for(it = begin(dirMap[tag]); it != end(dirMap[tag]); ++it)
+      {
+        if((*it)->tagNumber == number)
+          break;
+      }
+      std::vector<short> result;
+      if(it != end(dirMap[tag]))
+      {
+        file->seekg((*it)->dataOffset);
+        short tempShort;
+        for(int j = 0; j < (*it)->numOfElements; ++j)
                 {
-					file->read(reinterpret_cast<char*>(&tempShort), 2);
-					endian_swap(&tempShort);
-					result.push_back(tempShort);
-                }				
-				return result;
-			}
-			std::cout << "Can't return " << tag << " with parametr " << number << std::endl;
-			return result;
-		}
+          file->read(reinterpret_cast<char*>(&tempShort), 2);
+          endian_swap(&tempShort);
+          result.push_back(tempShort);
+                }        
+        return result;
+      }
+      std::cout << "Can't return " << tag << " with parametr " << number << std::endl;
+      return result;
+    }
 };
 void print(std::ostream& outputStream, DirectoryEntry& dirEntry)
 {
@@ -166,7 +166,7 @@ int main()
         if (strcmp(file_format, "ABIF") != 0)
         {
                 std::cout << "File has wrong format! " << file_format << std::endl;
-				system("pause");
+        system("pause");
                 return 2;
         }
   file.read(reinterpret_cast<char*>(&file_version), 2);// we needn't read this, actually
@@ -194,7 +194,7 @@ int main()
   for (int i = 0; i < header.numOfElements; i++)
   {
     readData(file, &dirData[i]);
-	directoryMap[dirData[i].tagName].push_back(&dirData[i]);
+  directoryMap[dirData[i].tagName].push_back(&dirData[i]);
   }
 
   //Creating struct, storing all nessescary fields
