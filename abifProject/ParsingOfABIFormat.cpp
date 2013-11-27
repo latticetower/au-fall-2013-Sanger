@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <map>
 
 //TODO: there is still some error with struct reading, so must fix, I hope this article would help:
 //http://en.wikipedia.org/wiki/Data_structure_alignment
@@ -39,9 +40,6 @@ struct DirectoryEntry
 struct DNASequence
 {
 		std::string sequence;
-		std::string name;
-		std::string qualitySequence;
-		std::string DataString[4];
 		std::vector<short> PeakPositions;
 		std::vector<short> CYs;
 		std::vector<short> GYs;
@@ -51,9 +49,67 @@ struct DNASequence
 		std::string sampleName;
 		std::string sampleComment;
 		std::string phredQuality;
-		std::string averagePakEntries;
-		int32_t capillarNumber;
-	//	std::string peakSpacing;
+		DNASequence(std::map<std::string, std::vector<DirectoryEntry*>> dirMap, std::ifstream *file)
+		{
+			sequence = GetInformationFromEntry<std::string>("PBAS", 2, dirMap, file); 
+			sampleComment = GetInformationFromEntry<std::string>("CMNT", 1, dirMap, file); 
+			GYs = GetInformationFromEntry<std::vector<short>>("DATA", 1, dirMap, file);
+			AYs = GetInformationFromEntry<std::vector<short>>("DATA", 2, dirMap, file);
+			TYs = GetInformationFromEntry<std::vector<short>>("DATA", 3, dirMap, file);
+			CYs = GetInformationFromEntry<std::vector<short>>("DATA", 4, dirMap, file);
+			PeakPositions = GetInformationFromEntry<std::vector<short>>("PLOC", 1, dirMap, file);
+			phredQuality = GetInformationFromEntry<std::string>("PCON", 1, dirMap, file); 
+			machineName = GetInformationFromEntry<std::string>("MCHN", 1, dirMap, file);
+			sampleName = GetInformationFromEntry<std::string>("MCHN", 1, dirMap, file);
+		}
+
+		template<class T>
+		T GetInformationFromEntry(std::string tag, unsigned int number, std::map<std::string, std::vector<DirectoryEntry*>> dirMap, std::ifstream *file)
+		{
+			std::vector<DirectoryEntry*>::iterator it = begin(dirMap[tag]);
+			for(it = begin(dirMap[tag]); it != end(dirMap[tag]); ++it)
+			{
+				if((*it)->tagNumber == number)
+					break;
+			}
+			T result;
+			if(it != end(dirMap[tag]))
+			{
+				file->seekg((*it)->dataOffset);
+				char tag[2000];
+				file->read(reinterpret_cast<char*>(tag), (*it)->elementSize*(*it)->numOfElements);
+				result = T(tag, (*it)->elementSize*(*it)->numOfElements);
+				return result;
+			}
+			std::cout << "Can't return " << tag << " with parametr " << number << std::endl;
+			return result;
+		}
+
+		template<>
+		std::vector<short> GetInformationFromEntry(std::string tag, unsigned int number, std::map<std::string, std::vector<DirectoryEntry*>> dirMap, std::ifstream *file)
+		{
+			std::vector<DirectoryEntry*>::iterator it = begin(dirMap[tag]);
+			for(it = begin(dirMap[tag]); it != end(dirMap[tag]); ++it)
+			{
+				if((*it)->tagNumber == number)
+					break;
+			}
+			std::vector<short> result;
+			if(it != end(dirMap[tag]))
+			{
+				file->seekg((*it)->dataOffset);
+				short tempShort;
+				for(int j = 0; j < (*it)->numOfElements; ++j)
+                {
+					file->read(reinterpret_cast<char*>(&tempShort), 2);
+					endian_swap(&tempShort);
+					result.push_back(tempShort);
+                }				
+				return result;
+			}
+			std::cout << "Can't return " << tag << " with parametr " << number << std::endl;
+			return result;
+		}
 };
 void print(std::ostream& outputStream, DirectoryEntry& dirEntry)
 {
@@ -125,247 +181,32 @@ int main()
   //DirectoryEntry is followed by 47 2-byte integers - according to specification, 
   //they are reserved, we should ignore them.
   //then go to the header.dataOffset position:
-  DirectoryEntry* dirData = new DirectoryEntry[header.numOfElements];
-  //Vector, storing pointers to entries, storing DNA Sequences
-  std::vector<DirectoryEntry*> sequenceEntries;
-  //Vector, storing pointers to entries, storing signal entries
-  std::vector<DirectoryEntry*> signalEntries;
   
-  std::vector<DirectoryEntry*> dataEntries;
-  std::vector<DirectoryEntry*> peakEntries;
-  std::vector<DirectoryEntry*> machineNameEntries;
-  std::vector<DirectoryEntry*> sampleNameEntries;
-  std::vector<DirectoryEntry*> sampleCommentNameEntries;
-  std::vector<DirectoryEntry*> capillarEntries;
-  std::vector<DirectoryEntry*> qualityEntries;
-  std::vector<DirectoryEntry*> averagePeakEntries;
-  ///std::vector<DirectoryEntry*> peakSpacingEntries;
+  DirectoryEntry* dirData = new DirectoryEntry[header.numOfElements];
+  
+  //Map, storing all directiry entries of file
+  std::map<std::string, std::vector<DirectoryEntry*>> directoryMap;
+  
   //TODO: should read dirData manually
   file.seekg(header.dataOffset);
+  
   //read data
-  //file.read(reinterpret_cast<char*>(dirData), header.numOfElements * sizeof(DirectoryEntry));
   for (int i = 0; i < header.numOfElements; i++)
   {
     readData(file, &dirData[i]);
-	std::string a = dirData[i].tagName;
-
-	//Taking DNA strings from ABIFFile
-	if(dirData[i].tagName == "PBAS" && dirData[i].tagNumber == 2)
-	{
-		sequenceEntries.push_back(&dirData[i]);
-		print(std::cout, dirData[i]);
-	}
-
-	if(dirData[i].tagName == "SPAC" && dirData[i].tagNumber == 1)
-	{
-		averagePeakEntries.push_back(&dirData[i]);
-		print(std::cout, dirData[i]);
-	}
-
-
-	if(dirData[i].tagName == "S/N%")
-	{
-		signalEntries.push_back(&dirData[i]);
-		print(std::cout, dirData[i]);
-	}
-
-	if(dirData[i].tagName == "DATA")
-	{
-		dataEntries.push_back(&dirData[i]);
-		print(std::cout, dirData[i]);
-	}
-	if(dirData[i].tagName == "PLOC")
-	{
-		peakEntries.push_back(&dirData[i]);
-		print(std::cout, dirData[i]);
-	}
-	if(dirData[i].tagName == "MCHN")
-	{
-		machineNameEntries.push_back(&dirData[i]);
-		print(std::cout, dirData[i]);
-	}
-	
-	if(dirData[i].tagName == "SMPL")
-	{
-		sampleNameEntries.push_back(&dirData[i]);
-		print(std::cout, dirData[i]);
-	}
-
-	if(dirData[i].tagName == "CMNT")
-	{
-		sampleCommentNameEntries.push_back(&dirData[i]);
-		print(std::cout, dirData[i]);
-	}
-
-	if(dirData[i].tagName == "LANE")
-	{
-		capillarEntries.push_back(&dirData[i]);
-		print(std::cout, dirData[i]);
-	}
-
-	if(dirData[i].tagName == "PCON")
-	{
-		qualityEntries.push_back(&dirData[i]);
-		print(std::cout, dirData[i]);
-	}
-	//if(dirData[i].tagName == "SPAC" && dirData[i].tagNumber == 1)
-	//{
-	//	peakSpacingEntries.push_back(&dirData[i]);
-	//	print(std::cout, dirData[i]);
-	//}
+	directoryMap[dirData[i].tagName].push_back(&dirData[i]);
   }
 
+  //Creating struct, storing all nessescary fields
+  DNASequence *DNA = new DNASequence(directoryMap, &file);
 
-  //Taking DNA sequence from directory
-  DNASequence DNA;
-  for(int i = 0; i < sequenceEntries.size(); ++i)
-  {
-
-	  file.seekg(sequenceEntries[i]->dataOffset);
-	  char tag[2000];
-	  file.read(reinterpret_cast<char*>(tag), sequenceEntries[i]->elementSize*sequenceEntries[i]->numOfElements);
-	  std::string DNAstring = std::string(tag, sequenceEntries[i]->elementSize*sequenceEntries[i]->numOfElements);
-	  DNA.name = DNAstring;
-  }	
-
-  
-  for(int i = 0; i < dataEntries.size(); ++i)
-  {
-
-	  file.seekg(dataEntries[i]->dataOffset);
-	  short Gshort = 0;
-	  if(dataEntries[i]->tagNumber == 1)
-	  {
-		  for(int j = 0; j < dataEntries[i]->numOfElements; ++j)
-		  {
-				file.read(reinterpret_cast<char*>(&Gshort), 2);
-				endian_swap(&Gshort);
-				DNA.GYs.push_back(Gshort);
-		  }
-	  }
-	  if(dataEntries[i]->tagNumber == 2)
-	  {
-		  		  for(int j = 0; j < dataEntries[i]->numOfElements; ++j)
-		  {
-
-		    file.read(reinterpret_cast<char*>(&Gshort), 2);
-			endian_swap(&Gshort);
-			DNA.AYs.push_back(Gshort);
-		  }
-	  }
-	  if(dataEntries[i]->tagNumber == 3)
-	  {
-		  		  for(int j = 0; j < dataEntries[i]->numOfElements; ++j)
-		  {
-
-		    file.read(reinterpret_cast<char*>(&Gshort), 2);
-			endian_swap(&Gshort);
-			DNA.TYs.push_back(Gshort);
-		  }
-	  }
-	  if(dataEntries[i]->tagNumber == 4)
-	  {
-		  		  for(int j = 0; j < dataEntries[i]->numOfElements; ++j)
-		  {
-
-				file.read(reinterpret_cast<char*>(&Gshort), 2);
-				endian_swap(&Gshort);
-				DNA.CYs.push_back(Gshort);
-		  }
-	  }
-	  //std::cout << DATAstring << std::endl;
-  }	
-  for(int i = 0; i < peakEntries.size(); ++i)
-  {
-	  if(peakEntries[i]->tagNumber == 1)
-	  {
-		  short peakpos = 0;
-		  file.seekg(peakEntries[i]->dataOffset);
-		  for(int j = 0; j < peakEntries[i]->numOfElements; ++j)
-		  {
-			  file.read(reinterpret_cast<char*>(&peakpos), 2);
-			  endian_swap(&peakpos);
-			  DNA.PeakPositions.push_back(peakpos);			  
-		  }
-		  //for(int j = 1; j < DNA.PeakPositions.size(); j++)
-		  //{
-			 // std::cout << DNA.PeakPositions[j] - DNA.PeakPositions[j-1] << " ";
-		  //}
-		  //char tag[4000];
-		 // file.read(reinterpret_cast<char*>(tag), peakEntries[i]->elementSize*peakEntries[i]->numOfElements);
-		  //std::string DNAstring = std::string(tag, peakEntries[i]->elementSize*peakEntries[i]->numOfElements);
-		  //DNA.PeakPositions = DNAstring;
-	  }
-  }	
-
-    for(int i = 0; i < machineNameEntries.size(); ++i)
-  {
-		  file.seekg(machineNameEntries[i]->dataOffset);
-		  char tag[30];
-		  file.read(reinterpret_cast<char*>(tag), machineNameEntries[i]->elementSize*machineNameEntries[i]->numOfElements);
-		  std::string DNAstring = std::string(tag, machineNameEntries[i]->elementSize*machineNameEntries[i]->numOfElements);
-		  DNA.machineName = DNAstring;
-  }
-
-	    for(int i = 0; i < sampleNameEntries.size(); ++i)
-  {
-		  file.seekg(sampleNameEntries[i]->dataOffset);
-		  char tag[30];
-		  file.read(reinterpret_cast<char*>(tag), sampleNameEntries[i]->elementSize*sampleNameEntries[i]->numOfElements);
-		  std::string DNAstring = std::string(tag, sampleNameEntries[i]->elementSize*sampleNameEntries[i]->numOfElements);
-		  DNA.sampleName = DNAstring;
-  }	
-
-  for(int i = 0; i < averagePeakEntries.size(); ++i)
-  {
-		  //file.seekg(averagePeakEntries[i]->dataOffset);
-		  char* tag;
-		//  tag = reinterpret_cast<char*>(&(averagePeakEntries[i]->dataOffset));
-		  //std::string DNAstring = std::string(tag, averagePeakEntries[i]->elementSize*averagePeakEntries[i]->numOfElements);
-		  //DNA.averagePakEntries = DNAstring;
-  }	
-	   for(int i = 0; i < sampleCommentNameEntries.size(); ++i)
-  {
-		  file.seekg(sampleCommentNameEntries[i]->dataOffset);
-		  char tag[100];
-		  file.read(reinterpret_cast<char*>(tag), sampleCommentNameEntries[i]->elementSize*sampleCommentNameEntries[i]->numOfElements);
-		  std::string DNAstring = std::string(tag, sampleCommentNameEntries[i]->elementSize*sampleCommentNameEntries[i]->numOfElements);
-		  DNA.sampleComment = DNAstring;
-  }	
-	   for(int i = 0; i < qualityEntries.size(); ++i)
-  {
-		  file.seekg(qualityEntries[i]->dataOffset);
-		  char tag[2000];
-		  file.read(reinterpret_cast<char*>(tag), qualityEntries[i]->elementSize*qualityEntries[i]->numOfElements);
-		  std::string DNAstring = std::string(tag, qualityEntries[i]->elementSize*qualityEntries[i]->numOfElements);
-		  DNA.phredQuality = DNAstring;
-  }	
-
-	 //  for(int i = 0; i < capillarEntries.size(); ++i)
-  //{
-		//  file.seekg(capillarEntries[i]->dataOffset);
-		//  char tag[100];
-		//  file.read(reinterpret_cast<char*>(tag), capillarEntries[i]->elementSize*capillarEntries[i]->numOfElements);
-		//  std::string DNAstring = std::string(tag, capillarEntries[i]->elementSize*capillarEntries[i]->numOfElements);
-		//  DNA.capillarNumber = 1;
-  //}	
-  // for(int i = 0; i < peakSpacingEntries.size(); ++i)
-  //{
-		//  file.seekg(peakSpacingEntries[i]->dataOffset);
-		//  char tag[4];
-		//  file.read(reinterpret_cast<char*>(tag), peakSpacingEntries[i]->elementSize*peakSpacingEntries[i]->numOfElements);
-		//  //endian_swap(&tag);
-		//  //std::string DNAstring = std::string(tag, peakSpacingEntries[i]->elementSize*peakSpacingEntries[i]->numOfElements);
-		//  DNA.peakSpacing = tag;
-	 // 
-  //}	
   if (file)
   {
-    std::cout << "all DirectoryEntries read successfully";
+    std::cout << "all DirectoryEntries read successfully" << std::endl;
   }
   else 
   {
-    std::cout << "error: only " << file.gcount() << " could be read";
+    std::cout << "error: only " << file.gcount() << " could be read" << std::endl;
     delete[] dirData;//clear memory anyway
     file.close();//close file handle
     return 3;//and exit
@@ -373,6 +214,6 @@ int main()
   //TODO: here we can print something
   file.close();
   delete[] dirData;//clear memory before exit        
-        system("pause");
-        return 0;
+  system("pause");
+  return 0;
 }
