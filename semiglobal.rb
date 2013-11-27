@@ -161,10 +161,7 @@ def distance_semiglobal(str1, str2)
   distance_matrix = build_matrix(str1, str2) # to improve readability
   
   result = [distance_matrix[str1.length].max, distance_matrix.max_by{ |x| x[str2.length] }[str2.length]].max
-  #distance_matrix[str1.length][str2.length]
   yield(result, get_backtrace_path(distance_matrix, str1, str2)) if block_given?
-  # to Pavel: check 'if block_given?' is the correct way, because if there is no block, 
-  # there is no need to compute backtracing and distance method should only return the answer.
   result
 end
 
