@@ -2,6 +2,7 @@ require 'ffi'
 
 module ReaderWrapper
   extend FFI::Library
-  ffi_lib FFI::Library::LIBC
-  attach_function :getpid, [], :int
+  ffi_lib 'extending_example'
+  #ffi_convention :stdcall
+  attach_function :read_from_file, [:string], :int
 end
