@@ -24,4 +24,12 @@ require "bio"
 # data from files with the same prefix names are collected and processed together
 # as a result, for each of them we produce fasta
 # and save it to output directory
+file_prefixes = Hash.new
 
+files = File.join(ARGV[0], "*.ab1")
+Dir.glob(files) do |file_in_directory|
+  scan_result = file_in_directory.scan(/^((?>[^_]+_){4})([^_]+)/)
+  # regexp to get primer name: /^(?>[^_]+_){4}([^_]+)/
+  # scan_result[0] - prefix, scan_result[1] - primer name
+  file_prefixes[scan_result[0]] ||= ""
+end
