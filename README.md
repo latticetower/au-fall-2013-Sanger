@@ -18,3 +18,4 @@ to execute test: call 'ruby testedfilename_spec.rb'
 
 Gems:
 bioruby
+green_shoes (for simple GUI creation)
