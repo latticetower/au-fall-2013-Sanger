@@ -27,9 +27,12 @@ require "bio"
 file_prefixes = Hash.new
 
 files = File.join(ARGV[0], "*.ab1")
+
 Dir.glob(files) do |file_in_directory|
-  scan_result = file_in_directory.scan(/^((?>[^_]+_){4})([^_]+)/)
+  scan_result = file_in_directory.sub(ARGV[0],'').scan(/((?>[^_]+_){3}(?>[^_]+))_([^_]+)/)
   # regexp to get primer name: /^(?>[^_]+_){4}([^_]+)/
   # scan_result[0] - prefix, scan_result[1] - primer name
-  file_prefixes[scan_result[0]] ||= ""
+  #file_prefixes[scan_result[0]] ||= ""
+  puts scan_result[0]
+  puts file_in_directory
 end
