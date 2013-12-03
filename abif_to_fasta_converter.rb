@@ -18,6 +18,18 @@ require "bio"
 #------------
 # 
 #------------
+require './string_sequence.rb'
+
+# I've moved abif reading to function because there would be different way to do it, we need to hide the details now
+def read_abif(filepath, &block)
+  abif_data = Bio::Abif.open(filepath)
+
+  abif_data.each_entry do |abif_record|
+    yield abif_record.sequence
+    # main documentation about corresponding to abif_record object is located at:
+    # http://bioruby.org/rdoc/Bio/SangerChromatogram.html
+  end
+end
 # ARGV[0] - folder with data
 # 1.1 we enumerate all files we can find
 # look at their primers name
@@ -28,11 +40,23 @@ file_prefixes = Hash.new
 
 files = File.join(ARGV[0], "*.ab1")
 
-Dir.glob(files) do |file_in_directory|
-  scan_result = file_in_directory.sub(ARGV[0],'').scan(/((?>[^_]+_){3}(?>[^_]+))_([^_]+)/)
+Dir.foreach(ARGV[0]) do |file_in_directory|
+  scan_result = file_in_directory.scan(/^((?>[^_]+_){3}(?>[^_]+))_([^_]+)/)
+  next if scan_result.size < 1
   # regexp to get primer name: /^(?>[^_]+_){4}([^_]+)/
-  # scan_result[0] - prefix, scan_result[1] - primer name
-  #file_prefixes[scan_result[0]] ||= ""
-  puts scan_result[0]
-  puts file_in_directory
+  # scan_result[0][0] - prefix, scan_result[0][1] - primer name
+  prefix = scan_result[0][0]
+  primer = scan_result[0][1]
+  puts "#{file_in_directory}: #{prefix}, #{primer}"
+  file_prefixes[prefix] ||= StringSequence.new
+  #read ab1 file
+  read_abif(File.join(ARGV[0], file_in_directory)) do |sequence|
+    file_prefixes[prefix] << sequence
+  end
+  #let's assume that somehow we managed to produce resulting string. here they are:
+  file_prefixes.keys.each do |k|
+    puts file_prefixes[k].to_s
+  end
+  #step 3: output data someway
+  
 end
