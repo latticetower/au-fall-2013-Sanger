@@ -48,11 +48,12 @@ Dir.foreach(ARGV[0]) do |file_in_directory|
   prefix = scan_result[0][0]
   primer = scan_result[0][1]
   puts "#{file_in_directory}: #{prefix}, #{primer}"
-  file_prefixes[prefix] ||= StringSequence.new
+  file_prefixes[primer] ||= StringSequence.new
   #read ab1 file
   read_abif(File.join(ARGV[0], file_in_directory)) do |sequence|
-    file_prefixes[prefix] << sequence
+    file_prefixes[primer] << sequence
   end
+  
   #let's assume that somehow we managed to produce resulting string. here they are:
   file_prefixes.keys.each do |k|
     puts file_prefixes[k].to_s
