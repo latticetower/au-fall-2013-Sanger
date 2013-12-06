@@ -3,7 +3,10 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <algorithm>
+#include <cstring>
 #include <stdint.h>
+#include <iterator>
 
 template <class T>
 void endian_swap(T *object);
@@ -20,7 +23,10 @@ struct DirectoryEntry
   int32_t dataHandle;
 };
 
-
+/*
+«амечани€. про сборку SWIG.
+1. если несколько > подр€д в шаблонах, просит их раздел€ть пробелом
+*/
 class ABIFReader
 {
   public:
@@ -31,7 +37,8 @@ class ABIFReader
 	  std::string getName();
 	  std::string getQuality();
     std::string getSequence();
-	  std::vector<std::vector<short>> getXY();
+	  std::vector<std::vector<short> > getXY();
+
     struct DNASequence
     {
     private:
@@ -45,18 +52,25 @@ class ABIFReader
 		  std::string sampleName;
 		  std::string sampleComment;
 		  std::string phredQuality;
-	    std::string GetStringInformationFromEntry(std::string, unsigned int, std::map<std::string, std::vector<DirectoryEntry*>>, std::ifstream*);
-		  std::vector<short> GetInformationFromEntry(std::string, unsigned int, std::map<std::string, std::vector<DirectoryEntry*>>, std::ifstream*);
+
+	    std::string GetStringInformationFromEntry(std::string, unsigned int, 
+        std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream*);
+
+		  std::vector<short> GetInformationFromEntry(std::string, unsigned int, 
+        std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream*);
+
     public:
       DNASequence();
-      DNASequence(std::map<std::string, std::vector<DirectoryEntry*>>, std::ifstream*);
+      DNASequence(std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream*);
       std::string getSequence();
 	    std::string getQuality();
-	    std::vector<std::vector<short>> getXY();
+	    std::vector<std::vector<short> > getXY();
       std::string getDNAName();
 	  };
-    void setDNA(std::map<std::string, std::vector<DirectoryEntry*>>, std::ifstream*);
+
+    void setDNA(std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream*);
     DNASequence* getDNA();
+
   private:
     DNASequence* DNA;
     std::string fileName;
