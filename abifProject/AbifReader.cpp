@@ -231,13 +231,13 @@ std::vector<short> ABIFReader::DNASequence::GetInformationFromEntry(std::string 
   std::map<std::string, std::vector<DirectoryEntry*> > dirMap, std::ifstream *file)
 {
 	std::vector<DirectoryEntry*>::iterator it = std::begin(dirMap[tag]);
-	for(it = std::begin(dirMap[tag]); it != std::end(dirMap[tag]); ++it)
+  for(it = dirMap[tag].begin(); it != dirMap[tag].end(); ++it)
 	{
 		if((*it)->tagNumber == number)
 			break;
 	}
 	std::vector<short> result;
-	if(it != std::end(dirMap[tag]))
+	if(it != dirMap[tag].end())
 	{
 		file->seekg((*it)->dataOffset);
 		short tempShort;
@@ -246,23 +246,24 @@ std::vector<short> ABIFReader::DNASequence::GetInformationFromEntry(std::string 
 			file->read(reinterpret_cast<char*>(&tempShort), 2);
 			endian_swap(&tempShort);
 			result.push_back(tempShort);
-      }				
+    }				
 		return result;
 	}
 	std::cout << "Can't return " << tag << " with parametr " << number << std::endl;
 	return result;
 }
 
-std::string ABIFReader::DNASequence::GetStringInformationFromEntry(std::string tag, unsigned int number, std::map<std::string, std::vector<DirectoryEntry*> > dirMap, std::ifstream *file)
+std::string ABIFReader::DNASequence::GetStringInformationFromEntry(std::string tag, unsigned int number, 
+  std::map<std::string, std::vector<DirectoryEntry*> > dirMap, std::ifstream *file)
 {
-  std::vector<DirectoryEntry*>::iterator it = std::begin(dirMap[tag]);
-  for(it = std::begin(dirMap[tag]); it != std::end(dirMap[tag]); ++it)
+  std::vector<DirectoryEntry*>::iterator it = dirMap[tag].begin();
+  for(it = dirMap[tag].begin(); it != dirMap[tag].end(); ++it)
   {
     if((*it)->tagNumber == number)
       break;
   }
   std::string result;
-  if(it != std::end(dirMap[tag]))
+  if(it != dirMap[tag].end())
   {
     file->seekg((*it)->dataOffset);
     char tag[2000];

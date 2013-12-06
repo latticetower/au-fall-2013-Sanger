@@ -3,7 +3,7 @@ require './test_module'
 
 describe 'test_module' do 
   it 'should do something' do 
-  #puts Test_module.methods
+    #puts Test_module.methods
     t1 = Test_module::MyTest.new  
     t1.get.must_equal 0.0 #-> 0.0  
     t1.set(12.34)  
