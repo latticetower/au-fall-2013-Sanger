@@ -76,7 +76,7 @@ class ABIFReader
     std::string fileName;
     bool isReady;
 	  int checkFileFormat(std::ifstream&);
-    int endWork(std::ifstream&, DirectoryEntry*);
+    int endWork(std::ifstream&, std::vector<DirectoryEntry>);
     void printDirectory(std::ostream&, DirectoryEntry&);
 	  void readData(std::istream&, DirectoryEntry*);
 };

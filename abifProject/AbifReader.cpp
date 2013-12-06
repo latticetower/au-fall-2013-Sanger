@@ -8,26 +8,27 @@ void endian_swap(T *object)
   std::reverse(memoryPointer, memoryPointer + sizeof(T));
 }
 
+enum Return_Meanings{ OK,  FILE_NOT_OPENED, FILE_NOT_FOUND, FILE_CANT_BE_PROCEEDED };
 //FIX: too much magic in this method
 int ABIFReader::ReadAll()
 {
-  DirectoryEntry header;
   std::ifstream file(fileName.c_str(), std::ios_base::binary);        
   if (!file.is_open())
   {
     std::cout << "File couldn't be opened, for the reasons unknown...";
-    return 1;
+    return FILE_NOT_OPENED;
   }
 
   if (checkFileFormat(file))
-	  return 2;
+	  return FILE_NOT_FOUND;
 
   file.seekg(6, std::ios::beg);//DirectoryEntry in header section begins at this offset
+  DirectoryEntry header;
   readData(file, &header);//FIX: this way of reading doesn't help either.
   //TODO: read specification, look at file_version?
   printDirectory(std::cout, header);
   //go to the header.dataOffset position:  
-  DirectoryEntry* dirData = new DirectoryEntry[header.numOfElements];
+  std::vector<DirectoryEntry> dirData(header.numOfElements);
   //Map, storing all directiry entries of file
   std::map<std::string, std::vector<DirectoryEntry*> > directoryMap;
   //TODO: should read dirData manually
@@ -44,9 +45,9 @@ int ABIFReader::ReadAll()
 
   DNA = new DNASequence(directoryMap, &file);
   if(endWork(file, dirData))
-	  return 3;
+	  return FILE_CANT_BE_PROCEEDED;
   isReady = true;
-  return 0;
+  return OK;
 }
 
 ABIFReader::DNASequence::DNASequence()
@@ -171,7 +172,7 @@ int ABIFReader::checkFileFormat(std::ifstream& file)
   return 0;
 }
 
-int ABIFReader::endWork(std::ifstream &file, DirectoryEntry *dirData)
+int ABIFReader::endWork(std::ifstream &file, std::vector<DirectoryEntry> dirData)
 {
   if (file)
   {
@@ -180,13 +181,12 @@ int ABIFReader::endWork(std::ifstream &file, DirectoryEntry *dirData)
   else 
   {
     std::cout << "error: only " << file.gcount() << " could be read" << std::endl;
-    delete[] dirData;//clear memory anyway
+   
     file.close();//close file handle
     return 3;//and exit
   }
   //TODO: here we can print something
-  file.close();
-  delete[] dirData;//clear memory before exit        
+  file.close();       
   return 0;
 }
 
