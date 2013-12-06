@@ -1,3 +1,3 @@
 require 'mkmf'  
 $libs = append_library($libs, "supc++")  
-create_makefile('abif_reader') 
+create_makefile('abifReader') 

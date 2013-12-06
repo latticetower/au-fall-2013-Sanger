@@ -119,7 +119,7 @@ LOCAL_LIBS =
 LIBS = $(LIBRUBYARG_SHARED) -lsupc++  -lshell32 -lws2_32 -limagehlp  
 SRCS = AbifReader_wrap.cxx AbifReader.cpp ParsingOfABIFormat.cpp
 OBJS = AbifReader_wrap.o AbifReader.o ParsingOfABIFormat.o
-TARGET = abif_reader
+TARGET = abifReader
 DLLIB = $(TARGET).so
 EXTSTATIC = 
 STATIC_LIB = 
@@ -167,7 +167,7 @@ install-rb-default: pre-install-rb-default
 pre-install-rb: Makefile
 pre-install-rb-default: Makefile
 pre-install-rb-default:
-	$(ECHO) installing default abif_reader libraries
+	$(ECHO) installing default abifReader libraries
 $(RUBYARCHDIR):
 	$(Q) $(MAKEDIRS) $@
 

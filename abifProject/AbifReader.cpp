@@ -12,7 +12,7 @@ void endian_swap(T *object)
 int ABIFReader::ReadAll()
 {
   DirectoryEntry header;
-  std::ifstream file(fileName, std::ios_base::binary);        
+  std::ifstream file(fileName.c_str(), std::ios_base::binary);        
   if (!file.is_open())
   {
     std::cout << "File couldn't be opened, for the reasons unknown...";
@@ -206,14 +206,14 @@ ABIFReader::DNASequence::DNASequence(std::map<std::string, std::vector<Directory
 
 void ABIFReader::writeToFasta()
 {
-    std::ofstream file(fileName.substr(0, fileName.length() - 4) + ".fasta", std::ios_base::binary);
+  std::ofstream file((fileName.substr(0, fileName.length() - 4) + ".fasta").c_str(), std::ios_base::binary);
     file << ">" << fileName.substr(0, fileName.length() - 4)  << std::endl;
     file << getSequence();
 }
 
 void ABIFReader::writeToDat()
 {
-    std::ofstream file(fileName.substr(0, fileName.length() - 4) + ".dat", std::ios_base::binary);
+  std::ofstream file((fileName.substr(0, fileName.length() - 4) + ".dat").c_str(), std::ios_base::binary);
     file << ">" << fileName.substr(0, fileName.length() - 4)  << std::endl;
     std::vector<std::vector<short> > buffer = getXY();
     for(int i = 0; i < buffer.size(); ++i)
@@ -230,7 +230,7 @@ void ABIFReader::writeToDat()
 std::vector<short> ABIFReader::DNASequence::GetInformationFromEntry(std::string tag, unsigned int number, 
   std::map<std::string, std::vector<DirectoryEntry*> > dirMap, std::ifstream *file)
 {
-	std::vector<DirectoryEntry*>::iterator it = std::begin(dirMap[tag]);
+  std::vector<DirectoryEntry*>::iterator it = dirMap[tag].begin();
   for(it = dirMap[tag].begin(); it != dirMap[tag].end(); ++it)
 	{
 		if((*it)->tagNumber == number)
