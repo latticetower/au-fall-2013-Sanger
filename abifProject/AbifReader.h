@@ -30,7 +30,7 @@ struct DirectoryEntry
 class ABIFReader
 {
   public:
-    ABIFReader(std::string const& fileName);
+    //ABIFReader(std::string const& fileName);
     ABIFReader(char* const fileName);
     int ReadAll();
 	  void writeToFasta();
@@ -66,7 +66,7 @@ class ABIFReader
       std::string const& getSequence() const;
 	    std::string const& getQuality() const;
 	    std::vector<std::vector<short> > const& getXY() const;
-      std::string const& getDNAName() const;
+      std::string const & getDNAName() const;
 	  };
 
     void setDNA(std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream&);

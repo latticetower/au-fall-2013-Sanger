@@ -64,13 +64,13 @@ void ABIFReader::setDNA(std::map<std::string, std::vector<DirectoryEntry*> > dir
 {
   this->DNA = new DNASequence(dirMap, file);
 }
-
+/*
 ABIFReader::ABIFReader(std::string const& fileName)
 {
   this->fileName = fileName;
-}
+}*/
 
-ABIFReader::ABIFReader(char * const fileName)
+ABIFReader::ABIFReader(char* fileName)
 {
   this->fileName = fileName;
 }

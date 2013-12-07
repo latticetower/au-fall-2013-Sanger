@@ -3,3 +3,4 @@
 %{  
 #include "AbifReader.h"  
 %}
+%include "AbifReader.h"

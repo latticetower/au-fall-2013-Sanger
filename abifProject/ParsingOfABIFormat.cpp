@@ -6,11 +6,13 @@
 #include "AbifReader.h"
 
 //TODO: there is still some error with struct reading, so must fix, I hope this article would help:
-//http://en.wikipedia.org/wiki/Data_structure_alignment
+// http://en.wikipedia.org/wiki/Data_structure_alignment
 // let's try to read manually again, hope that help
 
 int main(int argc, char *argv[])
 {
+  if (argc == 0)
+    return 0;
   for(int i = 1; i <= 3; ++i)
   {
     ABIFReader reader(argv[i]);
