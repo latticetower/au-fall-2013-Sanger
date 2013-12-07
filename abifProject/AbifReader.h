@@ -30,14 +30,14 @@ struct DirectoryEntry
 class ABIFReader
 {
   public:
-    ABIFReader(std::string);
+    ABIFReader(const std::string& fileName);
     int ReadAll();
 	  void writeToFasta();
 	  void writeToDat();
-	  std::string getName();
-	  std::string getQuality();
-    std::string getSequence();
-	  std::vector<std::vector<short> > getXY();
+	  const std::string& getName() const;
+	  const std::string& getQuality() const;
+    const std::string& getSequence() const;
+	  const std::vector<std::vector<short> >& getXY() const;
 
     struct DNASequence
     {
@@ -54,22 +54,22 @@ class ABIFReader
 		  std::string phredQuality;
 
 	    std::string GetStringInformationFromEntry(std::string, unsigned int, 
-        std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream*);
+        std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream&);
 
 		  std::vector<short> GetInformationFromEntry(std::string, unsigned int, 
-        std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream*);
+        std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream&);
 
     public:
       DNASequence();
-      DNASequence(std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream*);
-      std::string getSequence();
-	    std::string getQuality();
-	    std::vector<std::vector<short> > getXY();
-      std::string getDNAName();
+      DNASequence(std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream&);
+      const std::string& getSequence() const;
+	    const std::string& getQuality() const;
+	    const std::vector<std::vector<short> >& getXY() const;
+      const std::string& getDNAName() const;
 	  };
 
-    void setDNA(std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream*);
-    DNASequence* getDNA();
+    void setDNA(std::map<std::string, std::vector<DirectoryEntry*> >, std::ifstream&);
+    const DNASequence& getDNA() const;
 
   private:
     DNASequence* DNA;
