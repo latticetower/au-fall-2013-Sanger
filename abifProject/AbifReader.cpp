@@ -9,6 +9,7 @@ void endian_swap(T *object)
 }
 
 enum Return_Meanings{ OK,  FILE_NOT_OPENED, FILE_NOT_FOUND, FILE_CANT_BE_PROCEEDED };
+
 //FIX: too much magic in this method
 int ABIFReader::ReadAll()
 {
@@ -54,7 +55,7 @@ ABIFReader::DNASequence::DNASequence()
 {
     
 }
-const ABIFReader::DNASequence& ABIFReader::getDNA() const
+ABIFReader::DNASequence const& ABIFReader::getDNA() const
 {
   return *this->DNA;
 }
@@ -64,26 +65,31 @@ void ABIFReader::setDNA(std::map<std::string, std::vector<DirectoryEntry*> > dir
   this->DNA = new DNASequence(dirMap, file);
 }
 
-ABIFReader::ABIFReader(const std::string &fileName)
+ABIFReader::ABIFReader(std::string const& fileName)
 {
   this->fileName = fileName;
 }
 
-const std::string& ABIFReader::getName() const
+ABIFReader::ABIFReader(char * const fileName)
+{
+  this->fileName = fileName;
+}
+
+std::string const& ABIFReader::getName() const
 {
   if (isReady)
     return this->getDNA().getDNAName();
   return "";
 }
 
-const std::string& ABIFReader::getQuality() const
+std::string const& ABIFReader::getQuality() const
 {
   if (isReady)
     return this->getDNA().getQuality();
   return "";
 }
 
-const std::string& ABIFReader::getSequence() const
+std::string const& ABIFReader::getSequence() const
 {
   if (isReady)
     return this->getDNA().getSequence();
@@ -91,27 +97,27 @@ const std::string& ABIFReader::getSequence() const
 }
 
 
-const std::string& ABIFReader::DNASequence::getDNAName() const
+std::string const& ABIFReader::DNASequence::getDNAName() const
 {
   return this->sampleName;
 }
 
-const std::string& ABIFReader::DNASequence::getQuality() const
+std::string const& ABIFReader::DNASequence::getQuality() const
 {
   return this->phredQuality;
 }
 //
-const std::string& ABIFReader::DNASequence::getSequence() const
+std::string const& ABIFReader::DNASequence::getSequence() const
 {
   return this->sequence;
 }
 
-const std::vector<std::vector<short> >& ABIFReader::getXY() const
+std::vector<std::vector<short> > const& ABIFReader::getXY() const
 {
   return this->getDNA().getXY();
 }
 
-const std::vector<std::vector<short> >& ABIFReader::DNASequence::getXY() const
+std::vector<std::vector<short> > const& ABIFReader::DNASequence::getXY() const
 {
   std::vector<std::vector<short> > XY;
   XY.push_back(this->PeakPositions);
