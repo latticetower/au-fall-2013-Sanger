@@ -8,7 +8,6 @@ void endian_swap(T *object)
   std::reverse(memoryPointer, memoryPointer + sizeof(T));
 }
 
-enum Return_Meanings{ OK,  FILE_NOT_OPENED, FILE_NOT_FOUND, FILE_CANT_BE_PROCEEDED };
 
 //FIX: too much magic in this method
 int ABIFReader::ReadAll()
@@ -210,27 +209,35 @@ ABIFReader::DNASequence::DNASequence(std::map<std::string, std::vector<Directory
 			sampleName = GetStringInformationFromEntry("SMPL", 1, dirMap, file);
 }
 
+//TODO: change return type to bool (more informative)
+//FIX: segfault when fileName doesn't exist
 void ABIFReader::writeToFasta()
 {
+  //TODO: add some check
   std::ofstream file((fileName.substr(0, fileName.length() - 4) + ".fasta").c_str(), std::ios_base::binary);
-    file << ">" << fileName.substr(0, fileName.length() - 4)  << std::endl;
-    file << getSequence();
+  file << ">" << fileName.substr(0, fileName.length() - 4)  << std::endl;
+  file << getSequence();
+  file.close();
 }
 
+//TODO: change return type to bool (more informative)
+//FIX: segfault when fileName doesn't exist
 void ABIFReader::writeToDat()
 {
+  //TODO: check some conditions on fileName parameter here too
   std::ofstream file((fileName.substr(0, fileName.length() - 4) + ".dat").c_str(), std::ios_base::binary);
-    file << ">" << fileName.substr(0, fileName.length() - 4)  << std::endl;
-    std::vector<std::vector<short> > buffer = getXY();
-    for(int i = 0; i < buffer.size(); ++i)
+  file << ">" << fileName.substr(0, fileName.length() - 4)  << std::endl;
+  std::vector<std::vector<short> > buffer = getXY();
+  for(int i = 0; i < buffer.size(); ++i)
+  {
+    file << buffer[i].size() << std::endl;
+    for(int j = 0; j < buffer[i].size(); ++j)
     {
-      file << buffer[i].size() << std::endl;
-      for(int j = 0; j < buffer[i].size(); ++j)
-      {
-        file << buffer[i][j] << " ";
-      }
-      file << std::endl;
+      file << buffer[i][j] << " ";
     }
+    file << std::endl;
+  }
+  file.close();
 }
 
 std::vector<short> ABIFReader::DNASequence::GetInformationFromEntry(std::string tag, unsigned int number, 

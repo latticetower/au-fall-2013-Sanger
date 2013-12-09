@@ -1842,6 +1842,26 @@ static VALUE mAbifReader;
 #include "AbifReader.h"  
 
 
+#include <limits.h>
+#if !defined(SWIG_NO_LLONG_MAX)
+# if !defined(LLONG_MAX) && defined(__GNUC__) && defined (__LONG_LONG_MAX__)
+#   define LLONG_MAX __LONG_LONG_MAX__
+#   define LLONG_MIN (-LLONG_MAX - 1LL)
+#   define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
+# endif
+#endif
+
+
+  #define SWIG_From_long   LONG2NUM 
+
+
+SWIGINTERNINLINE VALUE
+SWIG_From_int  (int value)
+{    
+  return SWIG_From_long  (value);
+}
+
+
 SWIGINTERN swig_type_info*
 SWIG_pchar_descriptor(void)
 {
@@ -1890,26 +1910,6 @@ SWIG_AsCharPtrAndSize(VALUE obj, char** cptr, size_t* psize, int *alloc)
 
 
 
-
-
-#include <limits.h>
-#if !defined(SWIG_NO_LLONG_MAX)
-# if !defined(LLONG_MAX) && defined(__GNUC__) && defined (__LONG_LONG_MAX__)
-#   define LLONG_MAX __LONG_LONG_MAX__
-#   define LLONG_MIN (-LLONG_MAX - 1LL)
-#   define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
-# endif
-#endif
-
-
-  #define SWIG_From_long   LONG2NUM 
-
-
-SWIGINTERNINLINE VALUE
-SWIG_From_int  (int value)
-{    
-  return SWIG_From_long  (value);
-}
 
 static swig_class SwigClassDirectoryEntry;
 
@@ -3035,6 +3035,10 @@ SWIGEXPORT void Init_abifReader(void) {
   SwigClassDirectoryEntry.mark = 0;
   SwigClassDirectoryEntry.destroy = (void (*)(void *)) free_DirectoryEntry;
   SwigClassDirectoryEntry.trackObjects = 0;
+  rb_define_const(mAbifReader, "OK", SWIG_From_int(static_cast< int >(OK)));
+  rb_define_const(mAbifReader, "FILE_NOT_OPENED", SWIG_From_int(static_cast< int >(FILE_NOT_OPENED)));
+  rb_define_const(mAbifReader, "FILE_NOT_FOUND", SWIG_From_int(static_cast< int >(FILE_NOT_FOUND)));
+  rb_define_const(mAbifReader, "FILE_CANT_BE_PROCEEDED", SWIG_From_int(static_cast< int >(FILE_CANT_BE_PROCEEDED)));
   
   SwigClassABIFReader.klass = rb_define_class_under(mAbifReader, "ABIFReader", rb_cObject);
   SWIG_TypeClientData(SWIGTYPE_p_ABIFReader, (void *) &SwigClassABIFReader);

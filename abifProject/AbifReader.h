@@ -23,10 +23,9 @@ struct DirectoryEntry
   int32_t dataHandle;
 };
 
-/*
-«амечани€. про сборку SWIG.
-1. если несколько > подр€д в шаблонах, просит их раздел€ть пробелом
-*/
+enum Return_Meanings{ OK,  FILE_NOT_OPENED, FILE_NOT_FOUND, FILE_CANT_BE_PROCEEDED };
+
+
 class ABIFReader
 {
   public:
