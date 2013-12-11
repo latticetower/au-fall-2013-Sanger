@@ -51,6 +51,12 @@ describe "StringSequence", "StringSequence primitive test" do
       ss << "BB"
       ss.to_s.must_equal "[A, B], [A, B], [A]"
     end
+    it "should support additional parameter in a hash" do
+      ss = StringSequence.new
+      ss << {data: "AAA", filename: "file.txt"}
+      ss.to_s.must_equal "[A], [A], [A]"
+      ss.filenames.must_equal ["file.txt"]
+    end
     
   end
   describe "static comparision method for stringsequence symbols" do

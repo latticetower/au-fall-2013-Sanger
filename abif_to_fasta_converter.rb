@@ -15,6 +15,7 @@ print to the console the following line:
 =end
 # -----------
 require "bio"
+# require 'vcf'
 #------------
 # 
 #------------
@@ -48,15 +49,23 @@ Dir.foreach(ARGV[0]) do |file_in_directory|
   prefix = scan_result[0][0]
   primer = scan_result[0][1]
   puts "#{file_in_directory}: #{prefix}, #{primer}"
-  file_prefixes[primer] ||= StringSequence.new
+  file_prefixes[prefix] ||= StringSequence.new
   #read ab1 file
   read_abif(File.join(ARGV[0], file_in_directory)) do |sequence|
-    file_prefixes[primer] << sequence
+    file_prefixes[prefix] << {data: sequence, filename: file_in_directory}
   end
   
   #let's assume that somehow we managed to produce resulting string. here they are:
   file_prefixes.keys.each do |k|
-    puts file_prefixes[k].to_s
+    File.open("#{ARGV[1]}/#{prefix}.output", 'w') do |file|
+      result = file_prefixes[k].to_string_with_options
+      file.puts result[0]
+      result[1].keys.each do |k|
+        file.puts ""
+        file.puts "#{k}: "
+        file.puts result[1][k].join(', ')
+      end
+    end
   end
   #step 3: output data someway
   
